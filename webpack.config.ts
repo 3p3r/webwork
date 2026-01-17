@@ -13,6 +13,9 @@ const buildConfig = rc('webworkBuild', {
   openwork: {
     root: path.resolve(__dirname, 'openwork'),
   },
+  deepagents: {
+    root: path.resolve(__dirname, 'deepagents'),
+  },
 });
 
 const config: Configuration = {
@@ -91,13 +94,21 @@ const config: Configuration = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.jsx'],
+    extensionAlias: {
+      '.js': ['.ts', '.tsx', '.js'],
+      '.mjs': ['.mts', '.mjs'],
+    },
     alias: {
       '@': path.resolve(buildConfig.openwork.root, 'src/renderer/src'),
       '@renderer': path.resolve(buildConfig.openwork.root, 'src/renderer/src'),
       electron: path.resolve(__dirname, 'src/web-electron.ts'),
       process: path.resolve(__dirname, 'src/web-process.ts'),
+      child_process: path.resolve(__dirname, 'src/web-child-process.ts'),
+      deepagents: path.resolve(buildConfig.deepagents.root, 'libs/deepagents/src/index.ts'),
+      async_hooks: path.resolve(__dirname, 'src/web-async-hooks.ts'),
     },
     fallback: {
+      constants: require.resolve('constants-browserify'),
       url: require.resolve('url/'),
       util: require.resolve('util/'),
       assert: require.resolve('assert/'),
@@ -109,14 +120,15 @@ const config: Configuration = {
       fs: require.resolve('wasabio'),
       events: require.resolve('events/'),
       vm: require.resolve('vm-browserify'),
-      async_hooks: false,
-      child_process: false,
-      deepagents: false,
     },
   },
   plugins: [
+    new webpack.ProgressPlugin(),
     new webpack.NormalModuleReplacementPlugin(/^node:/, (resource) => {
       resource.request = resource.request.replace(/^node:/, '');
+    }),
+    new webpack.NormalModuleReplacementPlugin(/^fs$/, (resource) => {
+      resource.request = path.resolve(__dirname, 'src/web-filesystem.ts');
     }),
     new webpack.NormalModuleReplacementPlugin(/^fs\/promises$/, (resource) => {
       resource.request = path.resolve(__dirname, 'src/web-filesystem.ts');
@@ -129,10 +141,12 @@ const config: Configuration = {
     }),
     new webpack.DefinePlugin({
       __APP_VERSION__: JSON.stringify(pkg.version),
+      __BUILD_NODE_VERSION__: JSON.stringify(process.versions.node),
       'process.env': JSON.stringify({}),
     }),
     new webpack.ProvidePlugin({
       process: [path.resolve(__dirname, 'src/web-process.ts'), 'default'],
+      Buffer: ['buffer', 'Buffer'],
     }),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, 'src/index.html'),
