@@ -1,7 +1,7 @@
 {
   "name": "webwork",
   "version": "1.0.0",
-  "description": "WebWork is a build of OpenCode, which is a clone of Claude Cowork, and runs entirely in your browser.",
+  "description": "WebWork is a build of OpenWork, which is a clone of Claude Cowork, and runs entirely in your browser.",
   "scripts": {
     "build": "NODE_OPTIONS=\"--import tsx\" zx ./build.zx.ts",
     "webpack:build": "NODE_OPTIONS='--import tsx'  webpack --disable-interpret -c ./webpack.config.ts",
