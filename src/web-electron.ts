@@ -30,16 +30,28 @@ const mockResponses: Record<string, any> = {
   'agent:invoke': null,
 };
 
-export const ipcRenderer = new EventEmitter();
-
-Object.defineProperty(ipcRenderer, 'send', {
-  value: (channel: string, ...args: unknown[]): void => {
+export const ipcRenderer = new (class extends EventEmitter {
+  send(channel: string, ...args: unknown[]): void {
     console.log(`ipcRenderer.send called with channel: ${channel}`, ...args);
-  },
-});
+  }
 
-Object.defineProperty(ipcRenderer, 'invoke', {
-  value: async (channel: string, ...args: unknown[]): Promise<unknown> => {
+  sendSync(channel: string, ...args: unknown[]): unknown {
+    console.log(`ipcRenderer.sendSync called with channel: ${channel}`, ...args);
+
+    // Return mock data based on channel
+    if (mockResponses.hasOwnProperty(channel)) {
+      return mockResponses[channel];
+    }
+
+    // Default: return empty array for list operations, null for others
+    if (channel.includes(':list')) {
+      return [];
+    }
+
+    return null;
+  }
+
+  async invoke(channel: string, ...args: unknown[]): Promise<unknown> {
     console.log(`ipcRenderer.invoke called with channel: ${channel}`, ...args);
 
     // Return mock data based on channel
@@ -53,8 +65,8 @@ Object.defineProperty(ipcRenderer, 'invoke', {
     }
 
     return null;
-  },
-});
+  }
+})();
 
 export const contextBridge = {
   exposeInMainWorld: (key: string, api: unknown): void => {
@@ -67,14 +79,42 @@ export const contextBridge = {
   },
 };
 
-export const BrowserWindow = {};
+export const BrowserWindow = class extends EventEmitter {
+  webContents = new (class {
+    setWindowOpenHandler(handler: (details: any) => { action: 'allow' | 'deny' }) {
+      console.log('setWindowOpenHandler called with handler:', handler);
+    }
+  })();
+  loadFile(filePath: string): void {
+    console.log(`BrowserWindow.loadFile called with filePath: ${filePath}`);
+  }
+};
 
 export const shell = {};
 
 export const nativeImage = {};
 
-export const ipcMain = {};
+export const ipcMain = new (class extends EventEmitter {
+  handle(channel: string, listener: (...args: unknown[]) => Promise<unknown>): void {
+    console.log(`ipcMain.handle called with channel: ${channel}`);
+    this.on(channel, async (...args: unknown[]) => {
+      await listener(...args);
+    });
+  }
+})();
 
 export const dialog = {};
 
-export const app = {};
+export const app = new (class extends EventEmitter {
+  whenReady = () => Promise.resolve();
+  getPath = (name: string) => {
+    // Return mock paths for common electron app paths
+    const paths: Record<string, string> = {
+      userData: '/tmp/openwork-userdata',
+      appData: '/tmp/openwork-appdata',
+      temp: '/tmp',
+      home: '/home',
+    };
+    return paths[name] || '/tmp';
+  };
+})();

@@ -20,10 +20,16 @@ const buildConfig = rc('webworkBuild', {
 
 const config: Configuration = {
   mode: 'development',
+  target: 'web',
+  bail: true,
+  node: {
+    global: true,
+  },
+  performance: {
+    hints: false,
+  },
   entry: {
-    main: path.join(buildConfig.openwork.root, 'src/main/index.ts'),
-    preload: path.join(buildConfig.openwork.root, 'src/preload/index.ts'),
-    renderer: path.join(buildConfig.openwork.root, 'src/renderer/src/main.tsx'),
+    init: path.join(__dirname, 'src/launchpad.ts'),
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -90,6 +96,10 @@ const config: Configuration = {
         test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/,
         type: 'asset/resource',
       },
+      {
+        test: /\.wasm$/,
+        type: 'asset/resource',
+      },
     ],
   },
   resolve: {
@@ -102,6 +112,8 @@ const config: Configuration = {
       '@': path.resolve(buildConfig.openwork.root, 'src/renderer/src'),
       '@renderer': path.resolve(buildConfig.openwork.root, 'src/renderer/src'),
       electron: path.resolve(__dirname, 'src/web-electron.ts'),
+      'electron-store': path.resolve(__dirname, 'src/web-electron-store.ts'),
+      'sql.js$': path.resolve(__dirname, 'src/web-sqljs.ts'),
       process: path.resolve(__dirname, 'src/web-process.ts'),
       child_process: path.resolve(__dirname, 'src/web-child-process.ts'),
       deepagents: path.resolve(buildConfig.deepagents.root, 'libs/deepagents/src/index.ts'),
@@ -150,7 +162,7 @@ const config: Configuration = {
     }),
     new HtmlWebpackPlugin({
       template: path.join(__dirname, 'src/index.html'),
-      chunks: ['main', 'preload', 'renderer'],
+      chunks: ['init'],
     }),
   ],
   parallelism: 100,
