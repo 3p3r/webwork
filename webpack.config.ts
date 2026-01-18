@@ -150,7 +150,7 @@ const config: Configuration = {
       os: require.resolve('os-browserify/browser'),
       path: require.resolve('path-browserify'),
       fs: require.resolve('wasabio'),
-      events: require.resolve('events/'),
+      events: require.resolve('eventemitter2'),
       vm: require.resolve('vm-browserify'),
     },
   },

@@ -1,4 +1,28 @@
 import { EventEmitter } from 'events';
+import { memoize } from 'lodash';
+import type { Duplex } from 'stream';
+
+function createStandardStream(isError: boolean): Duplex {
+  const { Duplex } = require('stream');
+  const stream = new Duplex();
+  stream._read = () => {};
+  stream._write = (
+    chunk: any,
+    _encoding: BufferEncoding,
+    callback: (error?: Error | null) => void,
+  ) => {
+    if (isError) {
+      console.error(chunk.toString());
+    } else {
+      console.log(chunk.toString());
+    }
+    callback();
+  };
+  return stream;
+}
+
+const getStdout = memoize(() => createStandardStream(false));
+const getStderr = memoize(() => createStandardStream(true));
 
 declare const __BUILD_NODE_VERSION__: string;
 
@@ -73,4 +97,10 @@ export default new (class extends EventEmitter {
     this._cwd = directory;
   }
   argv: string[] = [];
+  get stdout(): Duplex {
+    return getStdout();
+  }
+  get stderr(): Duplex {
+    return getStderr();
+  }
 })();

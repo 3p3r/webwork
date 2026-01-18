@@ -80,7 +80,8 @@ export class BusyBoxIsomorphicChildProcess
             stat: (path: string) => fs.statSync(path),
             readdir: (path: string) => fs.readdirSync(path),
             readFile: (path: string, options?: any) => fs.readFileSync(path, options),
-            writeFile: (path: string, data: any, options?: any) => fs.writeFileSync(path, data, options),
+            writeFile: (path: string, data: any, options?: any) =>
+              fs.writeFileSync(path, data, options),
             mkdir: (path: string, options?: any) => fs.mkdirSync(path, options),
             rmdir: (path: string) => fs.rmdirSync(path),
             unlink: (path: string) => fs.unlinkSync(path),
@@ -91,7 +92,7 @@ export class BusyBoxIsomorphicChildProcess
             chmod: (path: string, mode: number) => fs.chmodSync?.(path, mode),
             chown: (path: string, uid: number, gid: number) => fs.chownSync?.(path, uid, gid),
             truncate: (path: string, len: number) => fs.truncateSync?.(path, len),
-            utimes: (path: string, atime: number | Date, mtime: number | Date) => 
+            utimes: (path: string, atime: number | Date, mtime: number | Date) =>
               fs.utimesSync?.(path, atime, mtime),
             open: (path: string, flags: any) => fs.openSync(path, flags),
             close: (fd: number) => fs.closeSync(fd),

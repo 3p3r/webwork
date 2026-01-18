@@ -7,7 +7,7 @@ import type {
   IsomorphicSpawnOptions,
 } from './common';
 import { BusyBoxIsomorphicChildProcess } from './busybox';
-// import { NodeSimIsomorphicChildProcess } from "./node-sim";
+import { ErrorReportChildProcess } from './error';
 
 /** An isomorphic ChildProcess implementation */
 type ChildProcess = IsomorphicChildProcess;
@@ -49,12 +49,16 @@ export const spawn: SpawnFunction = (
   args = args || [];
   opts = opts || {};
   if (cmd === 'node') {
-    throw new Error(`The "node" command is not supported in iso-process yet.`);
-    // return new NodeSimIsomorphicChildProcess(opts, ...args);
+    return new ErrorReportChildProcess(
+      opts,
+      cmd,
+      args,
+      `The "node" command is not supported in iso-process yet.`,
+    );
   } else if (cmd in Command) {
     return new BusyBoxIsomorphicChildProcess(opts, cmd, ...args);
   } else {
-    throw new Error(`Unknown command: ${cmd} with args: ${args}`);
+    return new ErrorReportChildProcess(opts, cmd, args, `Unknown command: ${cmd}`);
   }
 };
 
