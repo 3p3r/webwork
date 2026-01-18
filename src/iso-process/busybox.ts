@@ -1,21 +1,18 @@
+import fs from 'fs';
 import { Duplex } from 'stream';
 import { EventEmitter } from 'events';
-import { Writable, Readable } from 'stream';
+import type { Writable, Readable } from 'stream';
 
 import * as common from './common';
 const PID_POOL = new common.PidPool();
 
-// https://emscripten.org/docs/api_reference/module.html#Module.thisProgram
 interface EmscriptenModuleObject {
   callMain(args: string[]): Promise<number>;
-  // https://emscripten.org/docs/api_reference/module.html#Module.noExitRuntime
   noExitRuntime: boolean;
-  // busybox is sensitive to argv0 of the process! that's how it knows what to run.
   thisProgram: string;
-  // https://emscripten.org/docs/api_reference/module.html#Module.print
   print: (msg: string) => void;
-  // https://emscripten.org/docs/api_reference/module.html#Module.printErr
   printErr: (msg: string) => void;
+  preRun?: Array<(module: any) => void>;
 }
 
 export class BusyBoxIsomorphicChildProcess
@@ -62,14 +59,7 @@ export class BusyBoxIsomorphicChildProcess
       });
   }
   private async _fork(): Promise<EmscriptenModuleObject> {
-    // const variant = common.detectHostVariant();
-    // this is handled by Webpack's "require expressions" capability (syntax matters, do not refactor):
-    // https://webpack.js.org/guides/dependency-management/#require-with-expression
-    const factory = require('../../busybox/busybox.js');
-
-    // If spawnfile is not 'busybox', prepend it to args for busybox to know which applet to run
-    const actualArgs =
-      this.spawnfile === 'busybox' ? this.spawnargs : [this.spawnfile, ...this.spawnargs];
+    const factory = require('../../busybox/build/out/web/busybox.js');
 
     const Module: Partial<EmscriptenModuleObject> = {
       noExitRuntime: true,
@@ -81,14 +71,50 @@ export class BusyBoxIsomorphicChildProcess
         this.stderr.write(msg);
       },
     };
+
+    Module.preRun = [
+      (module: any) => {
+        if (module.FS?.filesystems.PROXYFS) {
+          const proxyFs = {
+            lstat: (path: string) => fs.lstatSync(path),
+            stat: (path: string) => fs.statSync(path),
+            readdir: (path: string) => fs.readdirSync(path),
+            readFile: (path: string, options?: any) => fs.readFileSync(path, options),
+            writeFile: (path: string, data: any, options?: any) => fs.writeFileSync(path, data, options),
+            mkdir: (path: string, options?: any) => fs.mkdirSync(path, options),
+            rmdir: (path: string) => fs.rmdirSync(path),
+            unlink: (path: string) => fs.unlinkSync(path),
+            rename: (oldPath: string, newPath: string) => fs.renameSync(oldPath, newPath),
+            readlink: (path: string) => fs.readlinkSync(path),
+            symlink: (target: string, path: string) => fs.symlinkSync(target, path),
+            exists: (path: string) => fs.existsSync(path),
+            chmod: (path: string, mode: number) => fs.chmodSync?.(path, mode),
+            chown: (path: string, uid: number, gid: number) => fs.chownSync?.(path, uid, gid),
+            truncate: (path: string, len: number) => fs.truncateSync?.(path, len),
+            utimes: (path: string, atime: number | Date, mtime: number | Date) => 
+              fs.utimesSync?.(path, atime, mtime),
+            open: (path: string, flags: any) => fs.openSync(path, flags),
+            close: (fd: number) => fs.closeSync(fd),
+            read: (fd: number, buffer: Buffer, offset: number, length: number, position: number) =>
+              fs.readSync(fd, buffer, offset, length, position),
+            write: (fd: number, buffer: Buffer, offset: number, length: number, position: number) =>
+              fs.writeSync(fd, buffer, offset, length, position),
+          };
+
+          module.FS.mkdir('/work');
+          module.FS.mount(module.FS.filesystems.PROXYFS, { root: '/', fs: proxyFs }, '/work');
+          module.FS.chdir('/work');
+        } else {
+          console.warn('PROXYFS not available, BusyBox will have no filesystem access');
+        }
+      },
+    ];
+
     const instance: EmscriptenModuleObject = await factory(Module);
-    // Store the actual args to use in _exec
-    (instance as any)._actualArgs = actualArgs;
     return instance;
   }
   private async _exec(instance: EmscriptenModuleObject): Promise<number> {
-    const args = (instance as any)._actualArgs || this.spawnargs;
-    const exitCode = await instance.callMain(args);
+    const exitCode = await instance.callMain(this.spawnargs);
     return exitCode;
   }
   public get exitCode(): number | null {

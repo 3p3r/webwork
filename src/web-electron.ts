@@ -39,7 +39,7 @@ export const ipcRenderer = new (class extends EventEmitter {
     console.log(`ipcRenderer.sendSync called with channel: ${channel}`, ...args);
 
     // Return mock data based on channel
-    if (mockResponses.hasOwnProperty(channel)) {
+    if (Object.hasOwn(mockResponses, channel)) {
       return mockResponses[channel];
     }
 
@@ -55,7 +55,7 @@ export const ipcRenderer = new (class extends EventEmitter {
     console.log(`ipcRenderer.invoke called with channel: ${channel}`, ...args);
 
     // Return mock data based on channel
-    if (mockResponses.hasOwnProperty(channel)) {
+    if (Object.hasOwn(mockResponses, channel)) {
       return mockResponses[channel];
     }
 

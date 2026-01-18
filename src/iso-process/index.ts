@@ -1,24 +1,24 @@
 import { parse } from 'shell-quote';
-import {
+import type {
   ExecFunction,
   SpawnFunction,
-  type IsoStdioOptions,
-  type IsomorphicChildProcess,
-  type IsomorphicSpawnOptions,
+  IsoStdioOptions,
+  IsomorphicChildProcess,
+  IsomorphicSpawnOptions,
 } from './common';
 import { BusyBoxIsomorphicChildProcess } from './busybox';
 // import { NodeSimIsomorphicChildProcess } from "./node-sim";
 
 /** An isomorphic ChildProcess implementation */
 type ChildProcess = IsomorphicChildProcess;
-export { IsomorphicChildProcess as ChildProcess };
+export type { IsomorphicChildProcess as ChildProcess };
 
 /** Isomorphic spawn options */
 type SpawnOptions = IsomorphicSpawnOptions;
-export { IsomorphicSpawnOptions as SpawnOptions };
+export type { IsomorphicSpawnOptions as SpawnOptions };
 
 /** Isomorphic stdio streams */
-export { IsoStdioOptions as StdioOptions };
+export type { IsoStdioOptions as StdioOptions };
 
 /**
  * An isomorphic child_process.exec() implementation.
@@ -102,11 +102,6 @@ export enum Command {
    * @see https://busybox.net/BusyBox.html#clear
    */
   clear = 'clear',
-  /**
-   * Zorse Companion CLI
-   * Inspired by @see https://github.com/AntonOsika/gpt-engineer/
-   */
-  companion = 'companion',
   /**
    * Copy SOURCE to DEST, or multiple SOURCE(s) to DIRECTORY
    * @see https://busybox.net/BusyBox.html#cp

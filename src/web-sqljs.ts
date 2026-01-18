@@ -1,8 +1,8 @@
-// @ts-ignore - webpack will handle this as an asset
+// @ts-expect-error - webpack will handle this as an asset
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm';
 
 // Import sql-wasm as a module - webpack will bundle it
-// @ts-ignore
+// @ts-expect-error
 import initSqlJsModule from '!!file-loader!sql.js/dist/sql-wasm.js';
 
 let sqlJsPromise: Promise<any> | null = null;
@@ -15,8 +15,7 @@ export default function initSqlJsWrapper(config?: any) {
       const script = document.createElement('script');
       script.src = initSqlJsModule;
       script.onload = () => {
-        // @ts-ignore - initSqlJs is now global
-        if (typeof window.initSqlJs === 'function') {
+        if (typeof window !== 'undefined' && typeof window.initSqlJs === 'function') {
           resolve(window.initSqlJs);
         } else {
           reject(new Error('initSqlJs not found on window'));
@@ -29,7 +28,7 @@ export default function initSqlJsWrapper(config?: any) {
 
   return sqlJsPromise.then((initSqlJs) =>
     initSqlJs({
-      locateFile: (file: string) => {
+      locateFile: (_file: string) => {
         // Return the webpack-resolved URL for the wasm file
         return wasmUrl;
       },
@@ -38,5 +37,5 @@ export default function initSqlJsWrapper(config?: any) {
   );
 }
 
-// @ts-ignore - re-export all named exports
+// @ts-expect-error - re-export all named exports
 export * from 'sql.js';

@@ -7,18 +7,20 @@ declare const __BUILD_NODE_VERSION__: string;
 const performance = globalThis.performance || {};
 const performanceNow =
   performance.now ||
+  // @ts-expect-error
   performance.mozNow ||
+  // @ts-expect-error
   performance.msNow ||
+  // @ts-expect-error
   performance.oNow ||
+  // @ts-expect-error
   performance.webkitNow ||
-  function () {
-    return new Date().getTime();
-  };
+  (() => Date.now());
 
 // generate timestamp or delta
 // see http://nodejs.org/api/process.html#process_process_hrtime
 const NS_PER_SEC = 1e9;
-const hrtime = (previousTimestamp) => {
+const hrtime = (previousTimestamp?: [number, number]) => {
   const clocktime = performanceNow.call(performance) * 1e-3;
   let seconds = Math.floor(clocktime);
   let nanoseconds = Math.floor((clocktime % 1) * NS_PER_SEC);
@@ -33,7 +35,7 @@ const hrtime = (previousTimestamp) => {
   return [seconds, nanoseconds];
 };
 // https://github.com/sagemathinc/cowasm/blob/7ec0dad2ef471edf893c75d65a86000d82d16024/packages/wasi-js/src/bindings/browser-hrtime.ts
-hrtime.bigint = (time) => {
+hrtime.bigint = (time?: [number, number]) => {
   const diff = hrtime(time);
   return diff[0] * NS_PER_SEC + diff[1];
 };
@@ -56,7 +58,7 @@ export default new (class extends EventEmitter {
   exit(status: number): void {
     this.exitCode = status;
   }
-  nextTick(callback: (...args: any[]) => void, ...args: any[]): void {
+  nextTick(callback: (...args: unknown[]) => void, ...args: unknown[]): void {
     Promise.resolve()
       .then(() => callback(...args))
       .catch((err) => {

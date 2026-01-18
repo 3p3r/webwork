@@ -140,4 +140,5 @@ vite.config.ts.timestamp-*
 
 deepagents
 openwork
-busybox
+busybox/build
+emcc-sdk

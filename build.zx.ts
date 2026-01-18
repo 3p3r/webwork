@@ -2,7 +2,7 @@ import fs from 'fs';
 import rc from 'rc';
 import path from 'path';
 import childProcess from 'child_process';
-import { $, within } from 'zx';
+import { $, within, cd } from 'zx';
 
 const config = rc('webwork', {
   openwork: {
@@ -16,9 +16,12 @@ const config = rc('webwork', {
     root: 'deepagents',
   },
   busybox: {
-    jsUrl: 'https://github.com/mayflower/busybox-wasm/releases/download/v1.37.0/busybox.js',
-    wasmUrl: 'https://github.com/mayflower/busybox-wasm/releases/download/v1.37.0/busybox.wasm',
     root: 'busybox',
+  },
+  emscripten: {
+    root: 'emcc-sdk',
+    version: '3.1.35',
+    sdkUrl: 'https://github.com/emscripten-core/emsdk/archive/refs/heads/main.zip',
   },
 });
 
@@ -48,41 +51,36 @@ async function fetchGitRepos() {
   ]);
 }
 
-async function downloadBusyBox() {
-  const busyboxDir = path.resolve(config.busybox.root);
-  if (fs.existsSync(busyboxDir)) {
-    console.log('BusyBox already downloaded, skipping.');
+async function installEmccSDK() {
+  if (fs.existsSync(config.emscripten.root)) {
+    console.log('Emscripten SDK already installed');
     return;
   }
-  console.log('Downloading BusyBox WASM binaries...');
-  fs.mkdirSync(busyboxDir, { recursive: true });
-  const jsPath = path.join(busyboxDir, 'busybox.js');
-  const wasmPath = path.join(busyboxDir, 'busybox.wasm');
-
-  const downloadFile = async (url: string, dest: string) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to download ${url}: ${response.statusText}`);
-    }
-    const data = await response.arrayBuffer();
-    fs.writeFileSync(dest, Buffer.from(data));
-  };
-
-  await Promise.all([
-    downloadFile(config.busybox.jsUrl, jsPath),
-    downloadFile(config.busybox.wasmUrl, wasmPath),
-  ]);
+  console.log('installing Emscripten SDK');
+  const ver = config.emscripten.version;
+  const url = config.emscripten.sdkUrl;
+  await $`curl -L ${url} -o emsdk.zip`;
+  await $`unzip emsdk.zip`;
+  await $`mv emsdk-main ${config.emscripten.root}`;
+  await $`rm emsdk.zip`;
+  await within(async () => {
+    cd(config.emscripten.root);
+    await $`./emsdk install ${ver}`;
+    await $`./emsdk activate ${ver}`;
+    cd('upstream/emscripten');
+    await $`ln -s emcc emgcc`;
+    await $`ln -s emcc.py emgcc.py`;
+    await $`./emgcc --version`;
+  });
 }
 
 async function installAllDependencies() {
-  await Promise.all([
-    downloadBusyBox(),
-    installNodeDependencies(config.openwork.root),
-    installNodeDependencies(config.deepagents.root),
-  ]);
+  installEmccSDK();
+  installNodeDependencies(config.openwork.root);
+  installNodeDependencies(config.deepagents.root);
 }
 
-async function buildDeepagents() {
+async function buildDeepAgents() {
   const cwd = path.resolve(config.deepagents.root, 'libs/deepagents');
 
   if (fs.existsSync(path.join(cwd, 'dist'))) {
@@ -113,10 +111,26 @@ async function buildWebWork() {
   await $`npm run webpack:build`;
 }
 
+async function buildBusyBox() {
+  console.log('Building BusyBox WASM binaries...');
+  await within(async () => {
+    cd(path.resolve(config.busybox.root));
+    await $`mkdir -p build`;
+    cd('build');
+    await $`cmake ..`;
+    await $`make -j2`;
+  });
+}
+
+async function buildAllDependencies() {
+  await buildDeepAgents();
+  await buildBusyBox();
+}
+
 async function build() {
   await fetchGitRepos();
   await installAllDependencies();
-  await buildDeepagents();
+  await buildAllDependencies();
   await buildWebWork();
 }
 
