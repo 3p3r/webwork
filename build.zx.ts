@@ -15,6 +15,11 @@ const config = rc('webwork', {
     repo: 'https://github.com/langchain-ai/deepagentsjs.git',
     root: 'deepagents',
   },
+  busybox: {
+    jsUrl: 'https://github.com/mayflower/busybox-wasm/releases/download/v1.37.0/busybox.js',
+    wasmUrl: 'https://github.com/mayflower/busybox-wasm/releases/download/v1.37.0/busybox.wasm',
+    root: 'busybox',
+  },
 });
 
 async function fetchRepo(repo: string, commit: string, dest: string) {
@@ -27,7 +32,7 @@ async function fetchRepo(repo: string, commit: string, dest: string) {
   await $`cd ${dest} && git checkout ${commit}`;
 }
 
-async function installDependencies(dir: string) {
+async function installNodeDependencies(dir: string) {
   if (fs.existsSync(`${dir}/node_modules`)) {
     console.log(`Dependencies already installed in ${dir}, skipping.`);
     return;
@@ -43,10 +48,37 @@ async function fetchGitRepos() {
   ]);
 }
 
+async function downloadBusyBox() {
+  const busyboxDir = path.resolve(config.busybox.root);
+  if (fs.existsSync(busyboxDir)) {
+    console.log('BusyBox already downloaded, skipping.');
+    return;
+  }
+  console.log('Downloading BusyBox WASM binaries...');
+  fs.mkdirSync(busyboxDir, { recursive: true });
+  const jsPath = path.join(busyboxDir, 'busybox.js');
+  const wasmPath = path.join(busyboxDir, 'busybox.wasm');
+
+  const downloadFile = async (url: string, dest: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to download ${url}: ${response.statusText}`);
+    }
+    const data = await response.arrayBuffer();
+    fs.writeFileSync(dest, Buffer.from(data));
+  };
+
+  await Promise.all([
+    downloadFile(config.busybox.jsUrl, jsPath),
+    downloadFile(config.busybox.wasmUrl, wasmPath),
+  ]);
+}
+
 async function installAllDependencies() {
   await Promise.all([
-    installDependencies(config.openwork.root),
-    installDependencies(config.deepagents.root),
+    downloadBusyBox(),
+    installNodeDependencies(config.openwork.root),
+    installNodeDependencies(config.deepagents.root),
   ]);
 }
 

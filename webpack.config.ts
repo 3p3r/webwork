@@ -4,6 +4,7 @@ import { readFileSync } from 'fs';
 import webpack from 'webpack';
 import type { Configuration } from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
 
 import 'webpack-dev-server';
 
@@ -40,8 +41,28 @@ const config: Configuration = {
   module: {
     rules: [
       {
+        test: /busybox\/busybox\.js$/,
+        use: [
+          {
+            loader: 'string-replace-loader',
+            options: {
+              multiple: [
+                {
+                  search: 'busybox_unstripped',
+                  replace: 'busybox',
+                  flags: 'g',
+                },
+              ],
+            },
+          },
+        ],
+      },
+      {
         test: /\.[jt]sx?$/,
-        exclude: /node_modules\/langchain\/dist\/chat_models\/universal\.js/,
+        exclude: [
+          /node_modules\/langchain\/dist\/chat_models\/universal\.js/,
+          /busybox\/busybox\.js$/,
+        ],
         loader: 'esbuild-loader',
         options: {
           target: 'es2024',
@@ -163,6 +184,14 @@ const config: Configuration = {
     new HtmlWebpackPlugin({
       template: path.join(__dirname, 'src/index.html'),
       chunks: ['init'],
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.join(__dirname, 'busybox/busybox.wasm'),
+          to: 'busybox.wasm',
+        },
+      ],
     }),
   ],
   parallelism: 100,
