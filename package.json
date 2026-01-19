@@ -33,6 +33,7 @@
     "@types/rc": "^1.2.4",
     "@types/shell-quote": "^1.7.5",
     "@types/sql.js": "^1.4.9",
+    "@types/wicg-file-system-access": "^2023.10.7",
     "assert": "^2.1.0",
     "buffer": "^6.0.3",
     "constants-browserify": "^1.0.0",

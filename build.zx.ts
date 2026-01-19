@@ -35,26 +35,23 @@ async function fetchRepo(repo: string, commit: string, dest: string) {
   await $`cd ${dest} && git checkout ${commit}`;
 }
 
-async function patchOpenWork() {
-  const mainTsxPath = path.resolve(config.openwork.root, 'src/renderer/src/main.tsx');
+async function applyOpenWorkPatch() {
+  const patchFile = path.resolve('openwork.patch');
+  const openworkRoot = path.resolve(config.openwork.root);
 
-  if (!fs.existsSync(mainTsxPath)) {
-    console.log('main.tsx not found, skipping patch');
+  if (!fs.existsSync(patchFile)) {
+    console.log('No openwork.patch found, skipping patch');
     return;
   }
 
-  console.log('Patching OpenWork main.tsx to remove React StrictMode...');
+  console.log('Applying openwork.patch...');
 
-  let content = fs.readFileSync(mainTsxPath, 'utf8');
-
-  // Remove StrictMode wrapper
-  content = content.replace(
-    /ReactDOM\.createRoot\(document\.getElementById\('root'\)!\)\.render\(\s*<React\.StrictMode>\s*<App \/>\s*<\/React\.StrictMode>\s*\)/s,
-    "ReactDOM.createRoot(document.getElementById('root')!).render(\n  <App />\n)",
-  );
-
-  fs.writeFileSync(mainTsxPath, content);
-  console.log('OpenWork main.tsx patched successfully');
+  try {
+    await $`cd ${openworkRoot} && git apply ${patchFile}`;
+    console.log('OpenWork patch applied successfully');
+  } catch (error) {
+    console.log('Patch may already be applied or failed to apply:', error);
+  }
 }
 
 async function installNodeDependencies(dir: string) {
@@ -71,7 +68,7 @@ async function fetchGitRepos() {
     fetchRepo(config.openwork.repo, config.openwork.commit, config.openwork.root),
     fetchRepo(config.deepagents.repo, config.deepagents.commit, config.deepagents.root),
   ]);
-  await patchOpenWork();
+  await applyOpenWorkPatch();
 }
 
 async function installEmccSDK() {
