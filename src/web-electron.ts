@@ -42,6 +42,10 @@ const BrowserWindow = class extends EventEmitter {
     return BrowserWindow.instance ? [BrowserWindow.instance] : [];
   }
 
+  static fromWebContents(_webContents: unknown): InstanceType<typeof BrowserWindow> | null {
+    return BrowserWindow.instance || null;
+  }
+
   webContents = new (class {
     setWindowOpenHandler(
       handler: (details: { url: string }) => { action: 'allow' | 'deny' },

@@ -174,13 +174,13 @@ const config: Configuration = {
     new webpack.DefinePlugin({
       __APP_VERSION__: JSON.stringify(pkg.version),
       __BUILD_NODE_VERSION__: JSON.stringify(process.versions.node),
-      'process.env': JSON.stringify({}),
     }),
     new webpack.ProvidePlugin({
       process: [path.resolve(__dirname, 'src/web-process.ts'), 'default'],
       Buffer: ['buffer', 'Buffer'],
     }),
     new HtmlWebpackPlugin({
+      favicon: path.join(__dirname, 'src/favicon.ico'),
       template: path.join(__dirname, 'src/index.html'),
       chunks: ['init'],
     }),
