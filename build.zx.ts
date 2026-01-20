@@ -6,7 +6,7 @@ import { $, within, cd } from 'zx';
 
 const config = rc('webwork', {
   openwork: {
-    commit: '8bb546f51124dd805283be515476bd4f1f58ef1a',
+    commit: '0a9960ff744a53a8f75c335447caf8ae40a1649a',
     repo: 'https://github.com/langchain-ai/openwork.git',
     root: 'openwork',
   },

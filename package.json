@@ -5,6 +5,7 @@
   "scripts": {
     "build": "NODE_OPTIONS=\"--import tsx\" zx ./build.zx.ts",
     "serve": "npx -y http-server ./dist",
+    "dev": "npm run webpack:watch",
     "webpack:build": "NODE_OPTIONS='--import tsx'  webpack --disable-interpret -c ./webpack.config.ts --mode production",
     "webpack:watch": "NODE_OPTIONS='--import tsx' webpack serve --disable-interpret -c ./webpack.config.ts --mode development",
     "format": "biome format --write .",
@@ -18,7 +19,18 @@
     "type": "git",
     "url": "git+https://github.com/3p3r/webwork.git"
   },
-  "keywords": [],
+  "keywords": [
+    "openwork",
+    "claude",
+    "claude-cowork",
+    "webwork",
+    "langchain",
+    "ai",
+    "agent",
+    "browser",
+    "typescript",
+    "react"
+  ],
   "author": "Sepehr Laal",
   "license": "MIT",
   "bugs": {
