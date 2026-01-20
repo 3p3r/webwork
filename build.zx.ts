@@ -20,7 +20,7 @@ const config = rc('webwork', {
   },
   emscripten: {
     root: 'emcc-sdk',
-    version: '3.1.35',
+    version: '3.1.74',
     sdkUrl: 'https://github.com/emscripten-core/emsdk/archive/refs/heads/main.zip',
   },
 });
@@ -36,8 +36,8 @@ async function fetchRepo(repo: string, commit: string, dest: string) {
 }
 
 async function applyOpenWorkPatch() {
-  const patchFile = path.resolve('openwork.patch');
-  const openworkRoot = path.resolve(config.openwork.root);
+  const patchFile = path.resolve(__dirname, 'openwork.patch');
+  const openworkRoot = path.resolve(__dirname, config.openwork.root);
 
   if (!fs.existsSync(patchFile)) {
     console.log('No openwork.patch found, skipping patch');
@@ -55,12 +55,13 @@ async function applyOpenWorkPatch() {
 }
 
 async function installNodeDependencies(dir: string) {
-  if (fs.existsSync(`${dir}/node_modules`)) {
+  const fullPath = path.resolve(__dirname, dir);
+  if (fs.existsSync(`${fullPath}/node_modules`)) {
     console.log(`Dependencies already installed in ${dir}, skipping.`);
     return;
   }
   console.log(`Installing dependencies in ${dir}...`);
-  await $`cd ${dir} && npm install`;
+  await $`cd ${fullPath} && npm install`;
 }
 
 async function fetchGitRepos() {
@@ -72,6 +73,7 @@ async function fetchGitRepos() {
 }
 
 async function installEmccSDK() {
+  cd(__dirname);
   if (fs.existsSync(config.emscripten.root)) {
     console.log('Emscripten SDK already installed');
     return;
@@ -84,7 +86,7 @@ async function installEmccSDK() {
   await $`mv emsdk-main ${config.emscripten.root}`;
   await $`rm emsdk.zip`;
   await within(async () => {
-    cd(config.emscripten.root);
+    cd(path.resolve(__dirname, config.emscripten.root));
     await $`./emsdk install ${ver}`;
     await $`./emsdk activate ${ver}`;
     cd('upstream/emscripten');
@@ -95,13 +97,13 @@ async function installEmccSDK() {
 }
 
 async function installAllDependencies() {
-  installEmccSDK();
-  installNodeDependencies(config.openwork.root);
-  installNodeDependencies(config.deepagents.root);
+  await installEmccSDK();
+  await installNodeDependencies(config.openwork.root);
+  await installNodeDependencies(config.deepagents.root);
 }
 
 async function buildDeepAgents() {
-  const cwd = path.resolve(config.deepagents.root, 'libs/deepagents');
+  const cwd = path.resolve(__dirname, config.deepagents.root, 'libs/deepagents');
 
   if (fs.existsSync(path.join(cwd, 'dist'))) {
     console.log('DeepAgents already built, skipping.');
@@ -115,7 +117,7 @@ async function buildDeepAgents() {
   delete cleanEnv.NODE_LOADER;
 
   await within(async () => {
-    $.cwd = cwd;
+    cd(cwd);
     await $`npm install`;
   });
 
@@ -134,7 +136,7 @@ async function buildWebWork() {
 async function buildBusyBox() {
   console.log('Building BusyBox WASM binaries...');
   await within(async () => {
-    cd(path.resolve(config.busybox.root));
+    cd(path.resolve(__dirname, config.busybox.root));
     await $`mkdir -p build`;
     cd('build');
     await $`cmake ..`;

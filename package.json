@@ -4,8 +4,9 @@
   "description": "WebWork is a build of OpenWork, which is a clone of Claude Cowork, and runs entirely in your browser.",
   "scripts": {
     "build": "NODE_OPTIONS=\"--import tsx\" zx ./build.zx.ts",
-    "webpack:build": "NODE_OPTIONS='--import tsx'  webpack --disable-interpret -c ./webpack.config.ts",
-    "webpack:watch": "NODE_OPTIONS='--import tsx' webpack serve --disable-interpret -c ./webpack.config.ts",
+    "serve": "npx -y http-server ./dist",
+    "webpack:build": "NODE_OPTIONS='--import tsx'  webpack --disable-interpret -c ./webpack.config.ts --mode production",
+    "webpack:watch": "NODE_OPTIONS='--import tsx' webpack serve --disable-interpret -c ./webpack.config.ts --mode development",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "lint": "biome lint --write .",
