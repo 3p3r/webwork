@@ -66,34 +66,6 @@ export default (_env: any, argv: { mode?: string }): Configuration => {
           ],
         },
         {
-          test: /src\/main\/ipc\/models\.ts$/,
-          use: [
-            {
-              loader: 'string-replace-loader',
-              options: {
-                multiple: [
-                  {
-                    search: 'async function readDir',
-                    replace: 'const fsSync = await import("fs");\nfunction readDir',
-                  },
-                  {
-                    search: 'await fs.readdir',
-                    replace: 'fsSync.readdirSync',
-                  },
-                  {
-                    search: 'await fs.stat',
-                    replace: 'fsSync.statSync',
-                  },
-                  {
-                    search: 'await readDir',
-                    replace: 'readDir',
-                  },
-                ],
-              },
-            },
-          ],
-        },
-        {
           test: /\.[jt]sx?$/,
           exclude: [
             /node_modules\/langchain\/dist\/chat_models\/universal\.js/,

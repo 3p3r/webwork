@@ -1,7 +1,8 @@
 /// <reference types="../openwork/node_modules/electron/electron" />
 
-import { EventEmitter } from 'events';
 import * as fs from 'fs';
+import { EventEmitter } from 'events';
+import { MemoryInitializer } from './memory';
 
 export default {};
 
@@ -15,7 +16,9 @@ export const ipcRenderer = new (class extends EventEmitter {
 
   async invoke(channel: string, ...args: unknown[]): Promise<unknown> {
     console.log(`ipcRenderer.invoke called with channel: ${channel}`, ...args);
-    return await ipcMain.emitAsync(channel, ...args);
+    const output = await ipcMain.emitAsync(channel, ...args);
+    MemoryInitializer.persist(); // persist in background
+    return output;
   }
 })();
 
@@ -84,7 +87,9 @@ export const ipcMain = new (class extends EventEmitter {
   async emitAsync(channel: string, ...args: unknown[]): Promise<unknown> {
     const handler = this.handlers.get(channel);
     if (handler) {
-      return await handler(null, ...args);
+      const output = await handler(null, ...args);
+      MemoryInitializer.persist(); // persist in background
+      return output;
     }
     return undefined;
   }

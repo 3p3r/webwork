@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { memoize } from 'lodash';
-import { initialize } from 'wasabio';
+import { MemoryInitializer } from './memory';
 
 const MEMORY_KEY = '__WASABIO_MEMORY__';
 
@@ -8,7 +8,9 @@ async function init() {
   assert(typeof globalThis !== 'undefined', 'globalThis is not defined');
   assert(!isInitialized(), 'Wasabio has already been initialized in this context');
 
-  const memory = await initialize();
+  console.log('Initializing Wasabio...');
+  const memory = await MemoryInitializer.get();
+  console.log('Wasabio initialized with memory:', memory);
   (globalThis as any)[MEMORY_KEY] = memory;
 }
 
