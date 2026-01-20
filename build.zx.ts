@@ -35,25 +35,6 @@ async function fetchRepo(repo: string, commit: string, dest: string) {
   await $`cd ${dest} && git checkout ${commit}`;
 }
 
-async function applyOpenWorkPatch() {
-  const patchFile = path.resolve(__dirname, 'openwork.patch');
-  const openworkRoot = path.resolve(__dirname, config.openwork.root);
-
-  if (!fs.existsSync(patchFile)) {
-    console.log('No openwork.patch found, skipping patch');
-    return;
-  }
-
-  console.log('Applying openwork.patch...');
-
-  try {
-    await $`cd ${openworkRoot} && git apply ${patchFile}`;
-    console.log('OpenWork patch applied successfully');
-  } catch (error) {
-    console.log('Patch may already be applied or failed to apply:', error);
-  }
-}
-
 async function installNodeDependencies(dir: string) {
   const fullPath = path.resolve(__dirname, dir);
   if (fs.existsSync(`${fullPath}/node_modules`)) {
@@ -69,7 +50,6 @@ async function fetchGitRepos() {
     fetchRepo(config.openwork.repo, config.openwork.commit, config.openwork.root),
     fetchRepo(config.deepagents.repo, config.deepagents.commit, config.deepagents.root),
   ]);
-  await applyOpenWorkPatch();
 }
 
 async function installEmccSDK() {

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "ESNext",
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "react": ["openwork/node_modules/@types/react"],
+      "react-dom": ["openwork/node_modules/@types/react-dom"],
+      "react/*": ["openwork/node_modules/@types/react/*"],
+      "react-dom/*": ["openwork/node_modules/@types/react-dom/*"]
+    },
+    "typeRoots": ["openwork/node_modules/@types", "node_modules/@types"]
+  },
+  "include": ["src/**/*", "openwork/src/**/*"],
+  "exclude": ["node_modules", "dist", "busybox/build"]
+}

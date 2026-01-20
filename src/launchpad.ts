@@ -5,7 +5,7 @@ async function launchpad() {
 
   await import(/* webpackChunkName: "main" */ '../openwork/src/main/index');
   await import(/* webpackChunkName: "preload" */ '../openwork/src/preload/index');
-  await import(/* webpackChunkName: "renderer" */ '../openwork/src/renderer/src/main');
+  await import(/* webpackChunkName: "renderer" */ './index');
 }
 
 launchpad().catch((error) => {

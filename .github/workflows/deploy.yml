@@ -41,7 +41,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: emcc-sdk
-          key: emscripten-3.1.71-${{ runner.os }}
+          key: emscripten-3.1.74-${{ runner.os }}
 
       - name: Install dependencies
         run: npm install

@@ -140,6 +140,16 @@ export default (_env: any, argv: { mode?: string }): Configuration => {
       alias: {
         '@': path.resolve(buildConfig.openwork.root, 'src/renderer/src'),
         '@renderer': path.resolve(buildConfig.openwork.root, 'src/renderer/src'),
+        react: path.resolve(buildConfig.openwork.root, 'node_modules/react'),
+        'react-dom': path.resolve(buildConfig.openwork.root, 'node_modules/react-dom'),
+        'react/jsx-runtime': path.resolve(
+          buildConfig.openwork.root,
+          'node_modules/react/jsx-runtime',
+        ),
+        'react/jsx-dev-runtime': path.resolve(
+          buildConfig.openwork.root,
+          'node_modules/react/jsx-dev-runtime',
+        ),
         electron: path.resolve(__dirname, 'src/web-electron.ts'),
         'electron-store': path.resolve(__dirname, 'src/web-electron-store.ts'),
         'sql.js$': path.resolve(__dirname, 'src/web-sqljs.ts'),
